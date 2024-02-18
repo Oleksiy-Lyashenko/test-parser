@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+import csv
+from dataclasses import dataclass, fields, astuple
 import re
 from urllib.parse import urljoin
 import requests
@@ -7,6 +8,8 @@ from bs4 import BeautifulSoup
 BASE_URL = "https://djinni.co"
 HOME_URL = urljoin(BASE_URL, "/jobs/?primary_keyword=Python")
 
+VACANCIES_CSV_PATH = "vacancies.csv"
+
 
 @dataclass
 class Vacancy:
@@ -14,6 +17,9 @@ class Vacancy:
     title: str
     description: str
     link: str
+
+
+VACANCY_FIELD = [field.name for field in fields(Vacancy)]
 
 
 # parse page and create a new class Vacancy of each attribute
@@ -65,8 +71,16 @@ def get_home_vacancies() -> [Vacancy]:
     return all_vacancies
 
 
+def write_vacancies_to_csv(vacancies: [Vacancy]) -> None:
+    with open(VACANCIES_CSV_PATH, "w") as file:
+        writer = csv.writer(file)
+        writer.writerow(VACANCY_FIELD)
+        writer.writerows([astuple(vacancy) for vacancy in vacancies])
+
+
 def main():
-    get_home_vacancies()
+    vacancies = get_home_vacancies()
+    write_vacancies_to_csv(vacancies)
 
 
 if __name__ == '__main__':
