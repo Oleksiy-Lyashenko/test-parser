@@ -1,4 +1,6 @@
 import csv
+import logging
+import sys
 from dataclasses import dataclass, fields, astuple
 import re
 from urllib.parse import urljoin
@@ -20,6 +22,15 @@ class Vacancy:
 
 
 VACANCY_FIELD = [field.name for field in fields(Vacancy)]
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(levelname)4s]: %(message)s",
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 
 
 # parse page and create a new class Vacancy of each attribute
@@ -53,6 +64,7 @@ def get_single_page_vacancies(page_soup: BeautifulSoup) -> [Vacancy]:
 
 
 def get_home_vacancies() -> [Vacancy]:
+    logging.info("Start parsing vacancies")
     page = requests.get(HOME_URL).content
     first_page_soup = BeautifulSoup(page, "html.parser")
 
@@ -64,6 +76,7 @@ def get_home_vacancies() -> [Vacancy]:
 
     # in page add query parameter "page" as a second arg in requests.get
     for page_num in range(2, num_pages + 1):
+        logging.info(f"Start parsing page: {page_num}")
         page = requests.get(HOME_URL, {"page": page_num}).content
         soup = BeautifulSoup(page, "html.parser")
         all_vacancies.extend(get_single_page_vacancies(soup))
